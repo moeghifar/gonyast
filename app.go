@@ -8,28 +8,36 @@ import (
 	"fmt"
 
 	"github.com/julienschmidt/httprouter"
-	"github.com/moeghifar/golang-workshop/src/util"
+	"github.com/moeghifar/nyastmach/src/sklh"
+	"github.com/moeghifar/nyastmach/src/util"
 )
 
 var (
-	user  = "Ghiyast"
-	pass  = "P4sswd"
-	sPort = 1102
+	appname = "NyastMach"
+	user    = "Ghiyast"
+	pass    = "P4sswd"
+	sPort   = 1102
+	version = "1.0"
 )
 
 func init() {
 	util.NewRedis("localhost:6379")
+	util.InitDatabase()
+	err := sklh.Init()
+	if err != nil {
+		log.Fatal("[FATAL] Failed initiating sklh package ->", err)
+	}
 }
 
 func main() {
 	portString := fmt.Sprintf(":%d", sPort)
 	// Write hello signature
-	signature("1.0", portString)
+	signature()
 
 	router := httprouter.New()
 
 	router.GET("/", Index)
-	router.GET("/hello/:name", Hello)
+	router.GET("/api/v1/get_sklh", sklh.GetSklh)
 	router.GET("/user/", BasicAuth(User, user, pass))
 
 	// Serving with http.ListenAndServe function which return fatal if error occured
@@ -49,28 +57,22 @@ func BasicAuth(h httprouter.Handle, requiredUser, requiredPass string) httproute
 	}
 }
 
-// Hello ...
-func Hello(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	name := p.ByName("name")
-	fmt.Fprintf(w, "Hella, Your name is %s", name)
-}
-
 // Index ...
-func Index(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fmt.Fprintf(w, "Hella, welcome to NyastMach")
+func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprintf(w, "Hella, welcome to %s", appname)
 }
 
 // User ...
-func User(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-	fmt.Fprintf(w, "You're logged in to NyastMach")
+func User(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	fmt.Fprintf(w, "You're logged in to %s", appname)
 }
 
-func signature(version string, sPort string) {
-	log.Println("/////////////")
-	log.Println("\\ NyastMach")
-	log.Println("\\ version", version)
-	log.Println("\\ port", sPort)
-	log.Println("/////////////")
+func signature() {
+	log.Println("///////////////")
+	log.Println("\\ ", appname, " \\")
+	log.Println("\\ version", version, "\\")
+	log.Println("\\  port", sPort, " \\")
+	log.Println("///////////////")
 }
 
 func reverse(w string) (r string) {
