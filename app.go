@@ -30,18 +30,10 @@ func init() {
 }
 
 func main() {
-	portString := fmt.Sprintf(":%d", sPort)
 	// Write hello signature
 	signature()
-
-	router := httprouter.New()
-
-	router.GET("/", Index)
-	router.GET("/api/v1/get_sklh", sklh.GetSklh)
-	router.GET("/user/", BasicAuth(User, user, pass))
-
-	// Serving with http.ListenAndServe function which return fatal if error occured
-	log.Fatal(http.ListenAndServe(portString, router))
+	// write router and port listening
+	router(httprouter.New())
 }
 
 // BasicAuth ...
@@ -55,6 +47,20 @@ func BasicAuth(h httprouter.Handle, requiredUser, requiredPass string) httproute
 			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 		}
 	}
+}
+
+func router(router *httprouter.Router) {
+	portString := fmt.Sprintf(":%d", sPort)
+
+	// List of router
+	router.GET("/", Index)
+	// API sklh
+	router.GET("/api/v1/get_sklh", sklh.GetSklh)
+	// test response with auth
+	router.GET("/user/", BasicAuth(User, user, pass))
+
+	// Serving with http.ListenAndServe function which return fatal if error occured
+	log.Fatal(http.ListenAndServe(portString, router))
 }
 
 // Index ...

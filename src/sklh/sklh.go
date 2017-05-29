@@ -48,7 +48,7 @@ func GetSklh(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	timeFinish := fmt.Sprintf("%f", time.Since(timeStart).Seconds())
 
 	// logging execution
-	log.Printf("Done execution in %s", timeFinish)
+	log.Printf("Done execution [GetSklh] in %s", timeFinish)
 
 	// generate response time
 	rt := ResponseTime{
