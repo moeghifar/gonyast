@@ -1,4 +1,10 @@
-# NyastMach 
-NyastMach - a web apps engine built with go
+# Gonyast
+Gonyast - a web app using go (golang)
 
-release version 1.0
+# Version
+v1.0
+
+# About
+Go (golang) v1.8
+PostgreSql
+Redis
