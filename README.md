@@ -5,6 +5,6 @@ Gonyast - a web app using go (golang)
 v1.0
 
 # About
-Go (golang) v1.8
-PostgreSql
-Redis
+- Go (golang) v1.8
+- PostgreSql
+- Redis
