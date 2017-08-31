@@ -1,28 +1,21 @@
 package util
 
 import (
-	"log"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
 )
 
-// Pool ...
-var Pool *redis.Pool
-
-// NewRedis ...
-func NewRedis(connection string) *redis.Pool {
+// InitRedis ...
+func InitRedis() (Pool *redis.Pool, err error) {
+	redisConnection := "localhost:6379"
 	Pool = &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 10 * time.Second,
 		Dial: func() (redis.Conn, error) {
-			c, err := redis.Dial("tcp", connection)
-			if err != nil {
-				log.Println("Redis connect error ! connection name ->", connection, ", error log ->", err)
-				return nil, err
-			}
-			return c, nil
+			c, err := redis.Dial("tcp", redisConnection)
+			return c, err
 		},
 	}
-	return Pool
+	return Pool, err
 }
