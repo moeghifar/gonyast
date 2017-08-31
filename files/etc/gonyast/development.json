@@ -1,0 +1,12 @@
+{
+	"port": "80",
+	"postgre": {
+		"core": "user='postgres' dbname='db_alpha_app' password='root' sslmode='disable'"
+	},
+	"redis": {
+		"core": "localhost:6379"
+	},
+	"mongo": {
+		"core": "localhost:27017"
+	}
+}
