@@ -1,0 +1,12 @@
+{
+	"port": "80",
+	"postgre": {
+		"core": "user='moeghifar-universe' dbname='gonyast' password='MGF' sslmode='disable'"
+	},
+	"redis": {
+		"core": "localhost:6379"
+	},
+	"mongo": {
+		"core": "localhost:27017"
+	}
+}
