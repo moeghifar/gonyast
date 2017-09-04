@@ -29,10 +29,11 @@ func init() {
 }
 
 func initConfig() (cfg configStruct, err error) {
-	if os.Getenv("APPENV") == "" {
+	Env = os.Getenv("APPENV")
+	if Env == "" {
 		Env = "development"
 	}
-	cfgPath := fmt.Sprintf("/etc/gonyast/config.%s.json", Env)
+	cfgPath := fmt.Sprintf("/files/etc/gonyast/config.%s.json", Env)
 	if _, err := os.Stat(cfgPath); err != nil {
 		if os.IsNotExist(err) {
 			cfgPath = fmt.Sprintf(".%s", cfgPath)
