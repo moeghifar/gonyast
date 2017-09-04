@@ -7,6 +7,6 @@ import (
 
 // InitDatabase ...
 func InitDatabase() (DBConn *sqlx.DB, err error) {
-	DBConn, err = sqlx.Connect("postgres", "user=postgres dbname=db_alpha_app password=root sslmode=disable")
+	DBConn, err = sqlx.Connect("postgres", Config.DBConfig["core"])
 	return DBConn, err
 }

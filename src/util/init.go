@@ -31,19 +31,19 @@ func Init() (err error) {
 }
 
 func initDatabase() (DBConn *sqlx.DB, err error) {
-	connection := "user='postgres'dbname='db_alpha_app'password='root'sslmode='disable'"
+	connection := Config.DBConfig["core"]
 	DBConn, err = sqlx.Connect("postgres", connection)
 	return DBConn, err
 }
 
 func initMongo() (session *mgo.Session, err error) {
-	mongoConnection := "localhost:27017"
+	mongoConnection := Config.MongoConfig["core"]
 	session, err = mgo.Dial(mongoConnection)
 	return session, err
 }
 
 func initRedis() (Pool *redis.Pool, err error) {
-	redisConnection := "localhost:6379"
+	redisConnection := Config.RedisConfig["core"]
 	Pool = &redis.Pool{
 		MaxIdle:     3,
 		IdleTimeout: 10 * time.Second,
