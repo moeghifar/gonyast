@@ -17,7 +17,7 @@ var (
 	appname = "Gonyast"
 	user    = "Ghiyast"
 	pass    = "P4sswd"
-	sPort   = 1102
+	sPort   = util.Config.Port
 	version = "1.0"
 )
 
