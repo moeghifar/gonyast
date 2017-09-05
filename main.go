@@ -55,7 +55,7 @@ func BasicAuth(h httprouter.Handle, requiredUser, requiredPass string) httproute
 }
 
 func router(router *httprouter.Router) {
-	portString := fmt.Sprintf(":%d", sPort)
+	portString := fmt.Sprintf(":%s", sPort)
 
 	// List of router
 	router.GET("/", Index)
