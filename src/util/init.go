@@ -1,7 +1,6 @@
 package util
 
 import (
-	"log"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -11,22 +10,25 @@ import (
 )
 
 var (
-	dbCon    *sqlx.DB
-	mongoCon *mgo.Session
-	redisCon *redis.Pool
+	// DBCon ...
+	DBCon *sqlx.DB
+	// MongoCon ,,,
+	MongoCon *mgo.Session
+	// RedisCon ,,,
+	RedisCon *redis.Pool
 )
 
 // Init will initiate all required initial configuration such db, redis, mongo
 func Init() (err error) {
-	if dbCon, err = initDatabase(); err != nil {
-		log.Fatal("[ERROR] failed initiate database :", err)
-	}
+	// if DBCon, err = initDatabase(); err != nil {
+	// 	log.Fatal("[ERROR] failed initiate database :", err)
+	// }
 	// if mongoCon, err = initMongo(); err != nil {
 	// 	log.Fatal("[ERROR] failed initiate mongo :", err)
 	// }
-	if redisCon, err = initRedis(); err != nil {
-		log.Fatal("[ERROR] failed initiate redis :", err)
-	}
+	// if redisCon, err = initRedis(); err != nil {
+	// 	log.Fatal("[ERROR] failed initiate redis :", err)
+	// }
 	return err
 }
 

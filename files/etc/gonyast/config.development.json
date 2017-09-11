@@ -1,5 +1,5 @@
 {
-	"port": "80",
+	"port": "1102",
 	"postgre": {
 		"core": "user='postgres' dbname='db_alpha_app' password='root' sslmode='disable'"
 	},

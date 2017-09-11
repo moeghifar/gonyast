@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/julienschmidt/httprouter"
+	"github.com/moeghifar/gonyast/src/btc"
 	"github.com/moeghifar/gonyast/src/sekolah"
 	"github.com/moeghifar/gonyast/src/util"
 )
@@ -23,22 +24,27 @@ var (
 
 func init() {
 	startTime := time.Now()
-	if err := util.Init(); err != nil {
-		log.Fatal("[ERROR]", err)
-	}
-	startTime = time.Now()
-	log.Println("[LOG] initiate util package done in", fmt.Sprintf("%f", time.Since(startTime).Seconds()*1000), "ms")
-	if err := sekolah.Init(); err != nil {
-		log.Fatal("[ERROR]", err)
-	}
+	// if err := util.Init(); err != nil {
+	// 	log.Fatal("[ERROR]", err)
+	// }
+	// startTime = time.Now()
+	// log.Println("[LOG] initiate util package done in", fmt.Sprintf("%f", time.Since(startTime).Seconds()*1000), "ms")
+	// if err := sekolah.Init(); err != nil {
+	// 	log.Fatal("[ERROR]", err)
+	// }
 	log.Println("[LOG] initiate sekolah package done in", fmt.Sprintf("%f", time.Since(startTime).Seconds()*1000), "ms")
 }
 
 func main() {
 	// Write hello signature
 	signature()
+	// hit btc infinity loop
+	for {
+		btc.GetBtc()
+		time.Sleep(5 * time.Second)
+	}
 	// write router and port listening
-	router(httprouter.New())
+	// router(httprouter.New())
 }
 
 // BasicAuth ...
