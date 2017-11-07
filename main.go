@@ -38,11 +38,12 @@ func init() {
 func main() {
 	// Write hello signature
 	signature()
+	btc.TelegramListener()
 	// hit btc infinity loop
-	for {
-		btc.GetBtc()
-		time.Sleep(5 * time.Second)
-	}
+	// for {
+	// 	btc.GetBtc()
+	// 	time.Sleep(5 * time.Second)
+	// }
 	// write router and port listening
 	// router(httprouter.New())
 }
