@@ -10,6 +10,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/moeghifar/gonyast/src/util"
 )
 
 type (
@@ -30,6 +32,14 @@ type (
 		APIURL string
 	}
 )
+
+// TelegramListener ...
+func TelegramListener() {
+	for {
+		GetBtc()
+		time.Sleep(30 * time.Second)
+	}
+}
 
 // GetBtc to get btc info through http request
 func GetBtc() (info string) {
@@ -61,29 +71,44 @@ func GetBtc() (info string) {
 	lastPriceInt, _ := strconv.ParseInt(resultBody.LP, 10, 64)
 	sellMinimum := ((dataSet.Buy * dataSet.Limit) / 100)
 	currentSellPrice := dataSet.Limit * lastPriceInt
+	// get redis
+	prevPrice, err := util.GetRedis("bitcoin_cash_cache")
+	var msg string
+	var changed bool
+	if prevPrice != "" {
+		prevPriceInt, _ := strconv.ParseInt(prevPrice, 10, 64)
+		if prevPriceInt == lastPriceInt {
+			msg = "Not Changing"
+		} else if prevPriceInt > lastPriceInt {
+			changed = true
+			msg = "Getting Down"
+		} else {
+			changed = true
+			msg = "Getting Up"
+
+		}
+	}
+	// set redis
+	util.SetRedis(resultBody.LP, "bitcoin_cash_cache")
 	// log.Println(fmt.Sprintf("bitcoin cash last price at %s (bitcoin.co.id) : %s", time.Now().Format(time.RFC822), resultBody.LP))
-	info = fmt.Sprintf("bitcoin cash last price at %s (bitcoin.co.id) : %s", time.Now().Format(time.RFC822), resultBody.LP)
+	info = fmt.Sprintf("bitcoin cash last price at %s : %s [%s from previous]", time.Now().Format(time.RFC822), resultBody.LP, msg)
 	if (lastPriceInt - dataSet.Buy) > sellMinimum {
 		percentSell := (currentSellPrice * 100) / dataSet.Limit
 		// log.Println(fmt.Sprintf("jual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice))
 		info += fmt.Sprintf("\n---\njual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice)
 	}
+	if changed {
+		sendToTelegram(info)
+	}
+	log.Println(info)
 	return
 }
 
-// TelegramListener ...
-func TelegramListener() {
+func sendToTelegram(getInfo string) {
 	botConfig := &telegramBot{
 		APIKey: "492963574:AAEhdUk4WnZaAmZdtA1m5LMcIreQR1Ee4Ag",
 		APIURL: "https://api.telegram.org/bot",
 	}
-
-	for {
-		getInfo := GetBtc()
-		log.Println(getInfo)
-		req, _ := http.PostForm(botConfig.APIURL+botConfig.APIKey+"/sendMessage", url.Values{"chat_id": {"@mgf_notifier"}, "text": {getInfo}})
-		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
-		time.Sleep(5 * time.Second)
-	}
-
+	req, _ := http.PostForm(botConfig.APIURL+botConfig.APIKey+"/sendMessage", url.Values{"chat_id": {"@mgf_notifier"}, "text": {getInfo}})
+	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 }

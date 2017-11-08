@@ -1,6 +1,7 @@
 package util
 
 import (
+	"log"
 	"time"
 
 	"github.com/garyburd/redigo/redis"
@@ -26,9 +27,9 @@ func Init() (err error) {
 	// if mongoCon, err = initMongo(); err != nil {
 	// 	log.Fatal("[ERROR] failed initiate mongo :", err)
 	// }
-	// if redisCon, err = initRedis(); err != nil {
-	// 	log.Fatal("[ERROR] failed initiate redis :", err)
-	// }
+	if RedisCon, err = initRedis(); err != nil {
+		log.Fatal("[ERROR] failed initiate redis :", err)
+	}
 	return err
 }
 
@@ -55,4 +56,24 @@ func initRedis() (Pool *redis.Pool, err error) {
 		},
 	}
 	return Pool, err
+}
+
+// SetRedis ...
+func SetRedis(value string, key string) (err error) {
+	openCon := RedisCon.Get()
+	_, err = openCon.Do("SET", key, value)
+	if err != nil && err != redis.ErrNil {
+		log.Println("[ERROR] ->", err)
+	}
+	return
+}
+
+// GetRedis ...
+func GetRedis(key string) (data string, err error) {
+	openCon := RedisCon.Get()
+	data, err = redis.String(openCon.Do("GET", key))
+	if err != nil && err != redis.ErrNil {
+		log.Println("[ERROR] ->", err)
+	}
+	return
 }
