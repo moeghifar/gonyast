@@ -37,7 +37,7 @@ type (
 func TelegramListener() {
 	for {
 		GetBtc()
-		time.Sleep(30 * time.Second)
+		time.Sleep(60 * time.Second)
 	}
 }
 
@@ -74,27 +74,27 @@ func GetBtc() (info string) {
 	// get redis
 	prevPrice, err := util.GetRedis("bitcoin_cash_cache")
 	var msg string
+	var msg2 string
 	var changed bool
 	if prevPrice != "" {
 		prevPriceInt, _ := strconv.ParseInt(prevPrice, 10, 64)
 		if prevPriceInt == lastPriceInt {
 			msg = "Not Changing"
+			msg2 = "-"
 		} else if prevPriceInt > lastPriceInt {
 			changed = true
 			msg = "Getting Down"
+			msg2 = "DOWN"
 		} else {
 			changed = true
 			msg = "Getting Up"
-
+			msg2 = "UP"
 		}
 	}
-	// set redis
 	util.SetRedis(resultBody.LP, "bitcoin_cash_cache")
-	// log.Println(fmt.Sprintf("bitcoin cash last price at %s (bitcoin.co.id) : %s", time.Now().Format(time.RFC822), resultBody.LP))
-	info = fmt.Sprintf("bitcoin cash last price at %s : %s [%s from previous]", time.Now().Format(time.RFC822), resultBody.LP, msg)
+	info = fmt.Sprintf("[%s] Last Price Rp %s [%s from previous]", msg2, resultBody.LP, msg)
 	if (lastPriceInt - dataSet.Buy) > sellMinimum {
 		percentSell := (currentSellPrice * 100) / dataSet.Limit
-		// log.Println(fmt.Sprintf("jual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice))
 		info += fmt.Sprintf("\n---\njual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice)
 	}
 	if changed {
