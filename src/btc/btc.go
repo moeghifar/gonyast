@@ -74,25 +74,21 @@ func GetBtc() (info string) {
 	// get redis
 	prevPrice, err := util.GetRedis("bitcoin_cash_cache")
 	var msg string
-	var msg2 string
 	var changed bool
 	if prevPrice != "" {
 		prevPriceInt, _ := strconv.ParseInt(prevPrice, 10, 64)
 		if prevPriceInt == lastPriceInt {
 			msg = "Not Changing"
-			msg2 = "-"
 		} else if prevPriceInt > lastPriceInt {
 			changed = true
 			msg = "Getting Down"
-			msg2 = "DOWN"
 		} else {
 			changed = true
 			msg = "Getting Up"
-			msg2 = "UP"
 		}
 	}
 	util.SetRedis(resultBody.LP, "bitcoin_cash_cache")
-	info = fmt.Sprintf("[%s] Last Price Rp %s [%s from previous]", msg2, resultBody.LP, msg)
+	info = fmt.Sprintf("Last Price Rp %s [%s from previous]", resultBody.LP, msg)
 	if (lastPriceInt - dataSet.Buy) > sellMinimum {
 		percentSell := (currentSellPrice * 100) / dataSet.Limit
 		info += fmt.Sprintf("\n---\njual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice)
