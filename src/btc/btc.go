@@ -22,10 +22,17 @@ type (
 	respBody struct {
 		LP string `json:"last_price"`
 	}
-	myCash struct {
-		Saldo float64
-		Buy   int64
-		Limit int64
+	// MyCash ...
+	MyCash struct {
+		LastMoney float64
+		Saldo     float64
+		LastBuy   float64
+	}
+	// BotConfig ...
+	BotConfig struct {
+		Currency       string
+		ProvitTreshold int64
+		Sleep          int
 	}
 	telegramBot struct {
 		APIKey string
@@ -33,16 +40,16 @@ type (
 	}
 )
 
-// TelegramListener ...
-func TelegramListener() {
+// Listen ...
+func Listen(dataSet MyCash, dataConf BotConfig) {
 	for {
-		GetBtc()
-		time.Sleep(60 * time.Second)
+		GetBtc(dataSet, dataConf)
+		time.Sleep(time.Duration(dataConf.Sleep) * time.Second)
 	}
 }
 
 // GetBtc to get btc info through http request
-func GetBtc() (info string) {
+func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 	apiURL := "https://vip.bitcoin.co.id/api/webdata/BCHIDR"
 	data := url.Values{}
 	data.Set("csrf_token", "5fbdec721a818fc0ec9ea2de62d936b60f57882d2830c4dce5f2a22a164fcd5e")
@@ -58,53 +65,58 @@ func GetBtc() (info string) {
 	}
 	defer resp.Body.Close()
 	log.Println("==========================================================================")
-	log.Println("response Status:", resp.Status)
+	log.Println("Response Code:", resp.Status)
 	body, _ := ioutil.ReadAll(resp.Body)
 	var resultBody respBody
 	json.Unmarshal(body, &resultBody)
 
-	dataSet := &myCash{
-		Saldo: 0.26962776,
-		Buy:   8500000,
-		Limit: 20,
-	}
 	lastPriceInt, _ := strconv.ParseInt(resultBody.LP, 10, 64)
-	sellMinimum := ((dataSet.Buy * dataSet.Limit) / 100)
-	currentSellPrice := dataSet.Limit * lastPriceInt
+
 	// get redis
-	prevPrice, err := util.GetRedis("bitcoin_cash_cache")
+	prevPrice, err := util.GetRedis("bitcoin_cache")
 	var msg string
-	var changed bool
+	// var changed bool
 	if prevPrice != "" {
 		prevPriceInt, _ := strconv.ParseInt(prevPrice, 10, 64)
 		if prevPriceInt == lastPriceInt {
 			msg = "Not Changing"
 		} else if prevPriceInt > lastPriceInt {
-			changed = true
+			// changed = true
 			msg = "Getting Down"
 		} else {
-			changed = true
+			// changed = true
 			msg = "Getting Up"
 		}
 	}
-	util.SetRedis(resultBody.LP, "bitcoin_cash_cache")
-	info = fmt.Sprintf("Last Price Rp %s [%s from previous]", resultBody.LP, msg)
-	if (lastPriceInt - dataSet.Buy) > sellMinimum {
-		percentSell := (currentSellPrice * 100) / dataSet.Limit
-		info += fmt.Sprintf("\n---\njual sekarang untung %d percent yakni : %d", percentSell, currentSellPrice)
+	// set redis
+	util.SetRedis(resultBody.LP, "bitcoin_cache")
+
+	fl, _ := strconv.ParseFloat(strconv.FormatFloat(float64(lastPriceInt), 'f', 0, 64), 64)
+	conversion := dataSet.Saldo * fl
+	lastBuyFormated, _ := strconv.ParseFloat(strconv.FormatFloat(dataSet.LastBuy, 'f', 0, 64), 64)
+	provit := conversion - (lastBuyFormated * dataSet.Saldo)
+	lastMoney := strconv.FormatFloat((lastBuyFormated * dataSet.Saldo), 'f', 0, 64)
+	timeAt := time.Now().Format(time.RFC822)
+
+	log.Println(fmt.Sprintf("%s [%s from previous]", dataConf.Currency, msg))
+	log.Println(fmt.Sprintf("Check at %s", timeAt))
+	log.Println(fmt.Sprintf("[LAST PRICE] Rp %s", resultBody.LP))
+	log.Println(fmt.Sprintf("[LAST MONEY] Rp %s", lastMoney))
+	log.Println(fmt.Sprintf("[PROVITS???] Rp %s", strconv.FormatFloat(provit, 'f', 0, 64)))
+
+	if int64(provit) > dataConf.ProvitTreshold {
+		messageToTelegram := "your provit more than 200k :" + strconv.FormatFloat(provit, 'f', 0, 64)
+		SendTelegram(messageToTelegram)
 	}
-	if changed {
-		sendToTelegram(info)
-	}
-	log.Println(info)
 	return
 }
 
-func sendToTelegram(getInfo string) {
+// SendTelegram ...
+func SendTelegram(getInfo string) {
 	botConfig := &telegramBot{
-		APIKey: "492963574:AAEhdUk4WnZaAmZdtA1m5LMcIreQR1Ee4Ag",
+		APIKey: "492963574:AAFXOign3WASxhyy_3obG1yebSP3qqQJ--Y",
 		APIURL: "https://api.telegram.org/bot",
 	}
-	req, _ := http.PostForm(botConfig.APIURL+botConfig.APIKey+"/sendMessage", url.Values{"chat_id": {"@mgf_notifier"}, "text": {getInfo}})
+	req, _ := http.PostForm(botConfig.APIURL+botConfig.APIKey+"/sendMessage", url.Values{"chat_id": {"@moeghifar_notify"}, "text": {getInfo}})
 	req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 }

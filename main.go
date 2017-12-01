@@ -1,7 +1,9 @@
 package main
 
 import (
+	"flag"
 	"log"
+	"strconv"
 	"time"
 
 	"net/http"
@@ -29,9 +31,29 @@ func init() {
 }
 
 func main() {
+	var flagJeda = flag.Int("jeda", 60, "masukan detik jeda looping")
+	var flagSaldo = flag.Float64("saldo", 0, "masukan saldo cryptocurrency saat ini")
+	var flagLastBuy = flag.Float64("lastbuy", 0, "masukan harga beli terakhir anda")
+	var flagCurrency = flag.String("currency", "", "masukan jenis currency (BTC / BCH / XZC)")
+	var flagProvitTreshold = flag.Int64("provit", 0, "masukan treshold provit untuk notifikasi telegram")
+	flag.Parse()
 	// Write hello signature
 	signature()
-	btc.TelegramListener()
+	if *flagSaldo == 0 || *flagLastBuy == 0 {
+		log.Fatalln("Please insert the value to `-saldo`,`-lastbuy`,`-currency`,`-provit` flag!")
+	}
+	log.Println("jeda :", *flagJeda, " detik | saldo:", *flagSaldo, " | lastbuy :", strconv.FormatFloat(*flagLastBuy, 'f', 0, 64))
+	log.Println("provit treshold :", *flagProvitTreshold, " | currency:", *flagCurrency)
+	dataSet := btc.MyCash{
+		Saldo:   *flagSaldo,
+		LastBuy: *flagLastBuy,
+	}
+	dataConf := btc.BotConfig{
+		Currency:       *flagCurrency,
+		Sleep:          *flagJeda,
+		ProvitTreshold: *flagProvitTreshold,
+	}
+	btc.Listen(dataSet, dataConf)
 }
 
 func router(router *httprouter.Router) {
