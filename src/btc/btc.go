@@ -105,7 +105,7 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 	log.Println(fmt.Sprintf("[PROVITS???] Rp %s", strconv.FormatFloat(provit, 'f', 0, 64)))
 
 	if int64(provit) > dataConf.ProvitTreshold {
-		messageToTelegram := "your provit more than 200k :" + strconv.FormatFloat(provit, 'f', 0, 64)
+		messageToTelegram := fmt.Sprintf("your provit more than %d : Rp %s", dataConf.ProvitTreshold, strconv.FormatFloat(provit, 'f', 0, 64))
 		SendTelegram(messageToTelegram)
 	}
 	return
