@@ -30,9 +30,9 @@ type (
 	}
 	// BotConfig ...
 	BotConfig struct {
-		Currency       string
-		ProvitTreshold int64
-		Sleep          int
+		Currency        string
+		ProfitThreshold int64
+		Sleep           int
 	}
 	telegramBot struct {
 		APIKey string
@@ -73,7 +73,8 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 	lastPriceInt, _ := strconv.ParseInt(resultBody.LP, 10, 64)
 
 	// get redis
-	prevPrice, err := util.GetRedis("bitcoin_cache")
+	prevPrice, err := util.GetRedis("last_price")
+	prevSellProfit, err := util.GetRedis("sell_profit")
 	var msg string
 	// var changed bool
 	if prevPrice != "" {
@@ -89,12 +90,12 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 		}
 	}
 	// set redis
-	util.SetRedis(resultBody.LP, "bitcoin_cache")
+	util.SetRedis(resultBody.LP, "last_price")
 
 	fl, _ := strconv.ParseFloat(strconv.FormatFloat(float64(lastPriceInt), 'f', 0, 64), 64)
 	conversion := dataSet.Saldo * fl
 	lastBuyFormated, _ := strconv.ParseFloat(strconv.FormatFloat(dataSet.LastBuy, 'f', 0, 64), 64)
-	provit := conversion - (lastBuyFormated * dataSet.Saldo)
+	profit := conversion - (lastBuyFormated * dataSet.Saldo)
 	lastMoney := strconv.FormatFloat((lastBuyFormated * dataSet.Saldo), 'f', 0, 64)
 	timeAt := time.Now().Format(time.RFC822)
 
@@ -102,10 +103,13 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 	log.Println(fmt.Sprintf("Check at %s", timeAt))
 	log.Println(fmt.Sprintf("[LAST PRICE] Rp %s", resultBody.LP))
 	log.Println(fmt.Sprintf("[LAST MONEY] Rp %s", lastMoney))
-	log.Println(fmt.Sprintf("[PROVITS???] Rp %s", strconv.FormatFloat(provit, 'f', 0, 64)))
+	log.Println(fmt.Sprintf("[PROFITS???] Rp %s", strconv.FormatFloat(profit, 'f', 0, 64)))
 
-	if int64(provit) > dataConf.ProvitTreshold {
-		messageToTelegram := fmt.Sprintf("your provit more than %d : Rp %s", dataConf.ProvitTreshold, strconv.FormatFloat(provit, 'f', 0, 64))
+	intPrevSellProfit, _ := strconv.ParseInt(prevSellProfit, 10, 64)
+	if int64(profit) > dataConf.ProfitThreshold && int64(profit) != intPrevSellProfit {
+		messageToTelegram := fmt.Sprintf("your provit Rp %s", strconv.FormatFloat(profit, 'f', 0, 64))
+		// set redis
+		util.SetRedis(resultBody.LP, "sell_profit")
 		SendTelegram(messageToTelegram)
 	}
 	return

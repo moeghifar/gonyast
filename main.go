@@ -35,7 +35,7 @@ func main() {
 	var flagSaldo = flag.Float64("saldo", 0, "masukan saldo cryptocurrency saat ini")
 	var flagLastBuy = flag.Float64("lastbuy", 0, "masukan harga beli terakhir anda")
 	var flagCurrency = flag.String("currency", "", "masukan jenis currency (BTC / BCH / XZC)")
-	var flagProvitTreshold = flag.Int64("provit", 0, "masukan treshold provit untuk notifikasi telegram")
+	var flagProfitThreshold = flag.Int64("profit", 0, "masukan threshold laba untuk notifikasi telegram")
 	flag.Parse()
 	// Write hello signature
 	signature()
@@ -43,7 +43,7 @@ func main() {
 		log.Fatalln("Please insert the value to `-saldo`,`-lastbuy`,`-currency`,`-provit` flag!")
 	}
 	log.Println("jeda :", *flagJeda, " detik | saldo:", *flagSaldo, " | lastbuy :", strconv.FormatFloat(*flagLastBuy, 'f', 0, 64))
-	log.Println("provit treshold :", *flagProvitTreshold, " | currency:", *flagCurrency)
+	log.Println("profit threshold :", *flagProfitThreshold, " | currency:", *flagCurrency)
 	dataSet := btc.MyCash{
 		Saldo:   *flagSaldo,
 		LastBuy: *flagLastBuy,
@@ -51,7 +51,7 @@ func main() {
 	dataConf := btc.BotConfig{
 		Currency:       *flagCurrency,
 		Sleep:          *flagJeda,
-		ProvitTreshold: *flagProvitTreshold,
+		ProfitTreshold: *flagProfitThreshold,
 	}
 	btc.Listen(dataSet, dataConf)
 }
