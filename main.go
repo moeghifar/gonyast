@@ -49,9 +49,9 @@ func main() {
 		LastBuy: *flagLastBuy,
 	}
 	dataConf := btc.BotConfig{
-		Currency:       *flagCurrency,
-		Sleep:          *flagJeda,
-		ProfitTreshold: *flagProfitThreshold,
+		Currency:        *flagCurrency,
+		Sleep:           *flagJeda,
+		ProfitThreshold: *flagProfitThreshold,
 	}
 	btc.Listen(dataSet, dataConf)
 }
