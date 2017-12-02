@@ -107,8 +107,8 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 
 	intPrevSellProfit, _ := strconv.ParseInt(prevSellProfit, 10, 64)
 	if int64(profit) > dataConf.ProfitThreshold && int64(profit) != intPrevSellProfit {
-		messageToTelegram := fmt.Sprintf("your provit Rp %s", strconv.FormatFloat(profit, 'f', 0, 64))
-		// set redis
+		messageToTelegram := fmt.Sprintf("Your profit Rp %s \ncurrent %s price Rp %s", strconv.FormatFloat(profit, 'f', 0, 64), dataConf.Currency, resultBody.LP)
+		// set redis cache for sell_profit
 		util.SetRedis(resultBody.LP, "sell_profit")
 		SendTelegram(messageToTelegram)
 	}
