@@ -14,6 +14,15 @@ import (
 	"github.com/moeghifar/gonyast/src/util"
 )
 
+const (
+	// BTCURL ...
+	BTCURL = "BTCIDR"
+	// BCHURL ...
+	BCHURL = "BCHIDR"
+	// XZCURL ...
+	XZCURL = "XZCIDR"
+)
+
 type (
 	reqBody struct {
 		CSRFToken string `json:"csrf_token"`
@@ -33,6 +42,7 @@ type (
 		Currency        string
 		ProfitThreshold int64
 		Sleep           int
+		Notify          bool
 	}
 	telegramBot struct {
 		APIKey string
@@ -50,7 +60,18 @@ func Listen(dataSet MyCash, dataConf BotConfig) {
 
 // GetBtc to get btc info through http request
 func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
-	apiURL := "https://vip.bitcoin.co.id/api/webdata/BCHIDR"
+	var currencyURL string
+	switch dataConf.Currency {
+	case "BTC":
+		currencyURL = BTCURL
+	case "BCH":
+		currencyURL = BCHURL
+	case "XZC":
+		currencyURL = XZCURL
+	default:
+		currencyURL = BTCURL
+	}
+	apiURL := "https://vip.bitcoin.co.id/api/webdata/" + currencyURL
 	data := url.Values{}
 	data.Set("csrf_token", "5fbdec721a818fc0ec9ea2de62d936b60f57882d2830c4dce5f2a22a164fcd5e")
 	data.Add("lang", "indonesia")
@@ -106,11 +127,13 @@ func GetBtc(dataSet MyCash, dataConf BotConfig) (info string) {
 	log.Println(fmt.Sprintf("[PROFITS???] Rp %s", strconv.FormatFloat(profit, 'f', 0, 64)))
 
 	intPrevSellProfit, _ := strconv.ParseInt(prevSellProfit, 10, 64)
+	// set redis cache for sell_profit
+	util.SetRedis(resultBody.LP, "sell_profit")
 	if int64(profit) > dataConf.ProfitThreshold && int64(profit) != intPrevSellProfit {
 		messageToTelegram := fmt.Sprintf("Your profit Rp %s \ncurrent %s price Rp %s", strconv.FormatFloat(profit, 'f', 0, 64), dataConf.Currency, resultBody.LP)
-		// set redis cache for sell_profit
-		util.SetRedis(resultBody.LP, "sell_profit")
-		SendTelegram(messageToTelegram)
+		if dataConf.Notify {
+			SendTelegram(messageToTelegram)
+		}
 	}
 	return
 }

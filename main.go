@@ -31,19 +31,32 @@ func init() {
 }
 
 func main() {
+	// mandatory
 	var flagJeda = flag.Int("jeda", 60, "masukan detik jeda looping")
+	var flagMode = flag.String("mode", "watch", "masukan jenis mode script ini (price-watch / profit-watch)")
+	// optional
 	var flagSaldo = flag.Float64("saldo", 0, "masukan saldo cryptocurrency saat ini")
 	var flagLastBuy = flag.Float64("lastbuy", 0, "masukan harga beli terakhir anda")
 	var flagCurrency = flag.String("currency", "", "masukan jenis currency (BTC / BCH / XZC)")
 	var flagProfitThreshold = flag.Int64("profit", 0, "masukan threshold laba untuk notifikasi telegram")
 	flag.Parse()
-	// Write hello signature
 	signature()
-	if *flagSaldo == 0 || *flagLastBuy == 0 {
-		log.Fatalln("Please insert the value to `-saldo`,`-lastbuy`,`-currency`,`-provit` flag!")
+	var notify bool
+	if *flagCurrency == "" || *flagJeda == 0 {
+		log.Fatalln("Please insert the value for `-currency` and `-jeda` flag!")
 	}
-	log.Println("jeda :", *flagJeda, " detik | saldo:", *flagSaldo, " | lastbuy :", strconv.FormatFloat(*flagLastBuy, 'f', 0, 64))
-	log.Println("profit threshold :", *flagProfitThreshold, " | currency:", *flagCurrency)
+	log.Println("jeda :", *flagJeda, " detik")
+	log.Println("running mode :", *flagMode)
+	switch *flagMode {
+	case "price-watch":
+	case "profit-watch":
+		if *flagSaldo == 0 || *flagLastBuy == 0 || *flagProfitThreshold == 0 {
+			log.Fatalln("Please insert the value to `-saldo`,`-lastbuy`,`-profit` flag!")
+		}
+		notify = true
+		log.Println("detik | saldo:", *flagSaldo, " | lastbuy :", strconv.FormatFloat(*flagLastBuy, 'f', 0, 64))
+		log.Println("profit threshold :", *flagProfitThreshold)
+	}
 	dataSet := btc.MyCash{
 		Saldo:   *flagSaldo,
 		LastBuy: *flagLastBuy,
@@ -52,6 +65,7 @@ func main() {
 		Currency:        *flagCurrency,
 		Sleep:           *flagJeda,
 		ProfitThreshold: *flagProfitThreshold,
+		Notify:          notify,
 	}
 	btc.Listen(dataSet, dataConf)
 }
