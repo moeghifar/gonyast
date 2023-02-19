@@ -1,0 +1,3 @@
+export APP_PORT=8000
+export APP_SERVICE_NAME=gonyast
+export APP_API_TOKEN=f987109d28d9d9d60f0ccca8bbd74f22f5390c25

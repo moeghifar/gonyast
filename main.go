@@ -1,93 +1,55 @@
 package main
 
 import (
-	"log"
-	"time"
-
-	"net/http"
-
 	"fmt"
+	"os"
 
-	"github.com/julienschmidt/httprouter"
-	"github.com/moeghifar/gonyast/src/sekolah"
-	"github.com/moeghifar/gonyast/src/util"
+	"github.com/gofiber/fiber/v2"
+	"github.com/spf13/viper"
 )
 
-var (
-	appname = "Gonyast"
-	user    = "Ghiyast"
-	pass    = "P4sswd"
-	sPort   = util.Config.Port
-	version = "1.0"
-)
+type Env struct {
+	Port        int    `mapstructure:"PORT"`
+	ServiceName string `mapstructure:"SERVICE_NAME"`
+	APIToken    string `mapstructure:"API_TOKEN"`
+}
 
-func init() {
-	startTime := time.Now()
-	if err := util.Init(); err != nil {
-		log.Fatal("[ERROR]", err)
+func ReadEnvViper() *Env {
+	viper.SetConfigFile(".env")
+	viper.AutomaticEnv()
+	viper.BindEnv("port")
+
+	fmt.Println(os.Getenv("PORT") + " <> " + os.Getenv("SERVICE_NAME"))
+
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println(err)
 	}
-	startTime = time.Now()
-	log.Println("[LOG] initiate util package done in", fmt.Sprintf("%f", time.Since(startTime).Seconds()*1000), "ms")
-	if err := sekolah.Init(); err != nil {
-		log.Fatal("[ERROR]", err)
+
+	envData := &Env{}
+
+	fmt.Println(viper.GetViper().AllSettings())
+
+	err = viper.Unmarshal(envData)
+	if err != nil {
+		panic(fmt.Errorf("failed unmarshal config file: %w", err))
 	}
-	log.Println("[LOG] initiate sekolah package done in", fmt.Sprintf("%f", time.Since(startTime).Seconds()*1000), "ms")
+
+	return envData
 }
 
 func main() {
-	// Write hello signature
-	signature()
-	// write router and port listening
-	router(httprouter.New())
-}
+	// env := ReadEnv()
+	env := ReadEnvViper()
+	srv := fiber.New()
 
-// BasicAuth ...
-func BasicAuth(h httprouter.Handle, requiredUser, requiredPass string) httprouter.Handle {
-	return func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
-		user, password, hasAuth := r.BasicAuth()
-		if hasAuth && user == requiredUser && password == requiredPass {
-			h(w, r, p)
-		} else {
-			w.Header().Set("WWW-Authenticate", "Basic realm=Restricted")
-			http.Error(w, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
-		}
-	}
-}
+	srv.Get("/health", func(c *fiber.Ctx) error {
+		return c.JSON(map[string]interface{}{
+			"healthy": true,
+		})
+	})
 
-func router(router *httprouter.Router) {
-	portString := fmt.Sprintf(":%s", sPort)
+	fmt.Printf("run %s service with http server in port %d\n", env.ServiceName, env.Port)
 
-	// List of router
-	router.GET("/", Index)
-	// API sekolah
-	router.GET("/api/get/sekolah/v1", sekolah.GetSekolah)
-	// test response with auth
-	router.GET("/user/", BasicAuth(User, user, pass))
-
-	// Serving with http.ListenAndServe function which return fatal if error occured
-	log.Fatal(http.ListenAndServe(portString, router))
-}
-
-// Index ...
-func Index(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "Hella, welcome to %s", appname)
-}
-
-// User ...
-func User(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
-	fmt.Fprintf(w, "You're logged in to %s", appname)
-}
-
-func signature() {
-	log.Println("//////////////////")
-	log.Println("\\", appname, " v", version)
-	log.Println("\\ port", sPort)
-	log.Println("//////////////////")
-}
-
-func reverse(w string) (r string) {
-	for _, v := range w {
-		r = string(v) + r
-	}
-	return
+	srv.Listen(fmt.Sprintf(":%d", env.Port))
 }

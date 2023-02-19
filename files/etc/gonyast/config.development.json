@@ -1,9 +1,0 @@
-{
-	"port": "80",
-	"postgre": {
-		"core": "user='postgres' dbname='db-app' password='root' sslmode='disable'"
-	},
-	"redis": {
-		"core": "localhost:6379"
-	}
-}
